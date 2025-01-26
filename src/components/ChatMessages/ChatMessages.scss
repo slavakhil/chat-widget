@@ -1,0 +1,64 @@
+.chat-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto; // Включаем вертикальную прокрутку
+    user-select: text; // Разрешаем выделение текста
+    display: flex;
+    flex-direction: column; // Сообщения добавляются снизу
+    gap: 10px;
+  }
+  
+  .chat-messages__message {
+    max-width: 80%;
+    padding: 10px;
+    border-radius: 10px;
+    position: relative;
+    text-align: left;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease;
+  
+    &--user {
+      border-top-right-radius: 0;
+      align-self: flex-end;
+      background-color: #007bff;
+      color: white;
+  
+      // Треугольник в верхнем правом углу
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -10px; // Смещаем треугольник за пределы сообщения
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 10px 10px 0 0; // Треугольник указывает вправо
+        border-color: #007bff transparent transparent transparent; // Цвет треугольника
+      }
+    }
+  
+    &--other {
+      border-top-left-radius: 0;
+      align-self: flex-start;
+      background-color: #f1f1f1;
+      color: black;
+  
+      // Треугольник в верхнем левом углу
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -10px; // Смещаем треугольник за пределы сообщения
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 10px 10px 0; // Формируем треугольник
+        border-color: transparent #f1f1f1 transparent transparent; // Цвет треугольника
+      }
+    }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
