@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import ChatMessages from '../ChatMessages/ChatMessages'; // Импортируем новый компонент
+import React, { useState, useEffect, useRef } from 'react';
+import ChatMessages from '../ChatMessages/ChatMessages'; // Импортируем компонент ChatMessages
 import './ChatWidget.scss';
 
 const ChatWidget = ({ onClose }) => {
-  const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 20 }); // Начальная позиция (справа сверху)
-  const [size, setSize] = useState({ width: 300, height: 400 }); // Начальные размеры
+  const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 20 });
+  const [size, setSize] = useState({ width: 300, height: 400 });
   const [dragging, setDragging] = useState(false);
-  const [resizing, setResizing] = useState(false);
+  const [resizing, setResizing] = useState({ active: false, corner: null });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [messages, setMessages] = useState([]); // Сообщения
-  const [inputValue, setInputValue] = useState(''); // Текст в поле ввода
 
   const handleMouseDown = (e) => {
     setDragging(true);
@@ -20,9 +18,9 @@ const ChatWidget = ({ onClose }) => {
     document.body.style.userSelect = 'none';
   };
 
-  const handleResizeMouseDown = (e) => {
+  const handleResizeMouseDown = (e, corner) => {
     e.stopPropagation(); // Останавливаем всплытие, чтобы не сработал handleMouseDown
-    setResizing(true);
+    setResizing({ active: true, corner });
     document.body.style.userSelect = 'none';
   };
 
@@ -41,36 +39,87 @@ const ChatWidget = ({ onClose }) => {
       if (newY + size.height > window.innerHeight) newY = window.innerHeight - size.height;
 
       setPosition({ x: newX, y: newY });
-    } else if (resizing) {
+    } else if (resizing.active) {
       // Изменение размера виджета
-      let newWidth = e.clientX - position.x;
-      let newHeight = e.clientY - position.y;
+      let newWidth = size.width;
+      let newHeight = size.height;
+      let newX = position.x;
+      let newY = position.y;
 
-      // Минимальные размеры
       const minWidth = 300;
       const minHeight = 400;
 
+      switch (resizing.corner) {
+        case 'bottom-right':
+          newWidth = e.clientX - position.x;
+          newHeight = e.clientY - position.y;
+          break;
+        case 'bottom-left':
+          newWidth = position.x + size.width - e.clientX;
+          newHeight = e.clientY - position.y;
+          newX = e.clientX;
+          break;
+        case 'top-right':
+          newWidth = e.clientX - position.x;
+          newHeight = position.y + size.height - e.clientY;
+          newY = e.clientY;
+          break;
+        case 'top-left':
+          newWidth = position.x + size.width - e.clientX;
+          newHeight = position.y + size.height - e.clientY;
+          newX = e.clientX;
+          newY = e.clientY;
+          break;
+        case 'left':
+          newWidth = position.x + size.width - e.clientX;
+          newX = e.clientX;
+          break;
+        case 'right':
+          newWidth = e.clientX - position.x;
+          break;
+        case 'top':
+          newHeight = position.y + size.height - e.clientY;
+          newY = e.clientY;
+          break;
+        case 'bottom':
+          newHeight = e.clientY - position.y;
+          break;
+        default:
+          break;
+      }
+
       // Ограничиваем размеры
-      if (newWidth < minWidth) newWidth = minWidth;
-      if (newHeight < minHeight) newHeight = minHeight;
+      if (newWidth < minWidth) {
+        newWidth = minWidth;
+        if (resizing.corner === 'bottom-left' || resizing.corner === 'top-left' || resizing.corner === 'left' || resizing.corner === 'right') {
+          newX = position.x + size.width - minWidth;
+        }
+      }
+      if (newHeight < minHeight) {
+        newHeight = minHeight;
+        if (resizing.corner === 'top-right' || resizing.corner === 'top-left' || resizing.corner === 'top' || resizing.corner === 'bottom') {
+          newY = position.y + size.height - minHeight;
+        }
+      }
 
       // Ограничиваем максимальные размеры (по размеру окна)
-      if (newWidth > window.innerWidth - position.x) newWidth = window.innerWidth - position.x;
-      if (newHeight > window.innerHeight - position.y) newHeight = window.innerHeight - position.y;
+      if (newWidth > window.innerWidth - newX) newWidth = window.innerWidth - newX;
+      if (newHeight > window.innerHeight - newY) newHeight = window.innerHeight - newY;
 
       setSize({ width: newWidth, height: newHeight });
+      setPosition({ x: newX, y: newY });
     }
   };
 
   const handleMouseUp = () => {
     setDragging(false);
-    setResizing(false);
+    setResizing({ active: false, corner: null });
     document.body.style.userSelect = 'auto';
   };
 
   // Привязываем обработчики событий к document
   useEffect(() => {
-    if (dragging || resizing) {
+    if (dragging || resizing.active) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     } else {
@@ -83,34 +132,6 @@ const ChatWidget = ({ onClose }) => {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [dragging, resizing]);
-
-  // Обработчики для кнопок
-  const handleClear = () => {
-    setMessages([]); // Очищаем сообщения
-  };
-
-  // Отправка сообщения
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
-      const newMessage = {
-        id: Date.now(), // Уникальный ID для сообщения
-        text: inputValue,
-        isUser: true, // Сообщение от пользователя
-      };
-      setMessages((prev) => [...prev, newMessage]); // Добавляем сообщение
-      setInputValue(''); // Очищаем поле ввода
-
-      // Имитация ответа от другого пользователя
-      setTimeout(() => {
-        const responseMessage = {
-          id: Date.now() + 1,
-          text: 'Это ответ от другого пользователя!',
-          isUser: false,
-        };
-        setMessages((prev) => [...prev, responseMessage]);
-      }, 1000);
-    }
-  };
 
   return (
     <div
@@ -130,40 +151,47 @@ const ChatWidget = ({ onClose }) => {
           Chat
         </div>
         <div className="chat-widget__header-actions">
-          <button
-            className="chat-widget__header-button"
-            onClick={handleClear}
-          >
-            Очистить
-          </button>
-          <button
-            className="chat-widget__header-button"
-            onClick={onClose}
-          >
-            ×
-          </button>
+          <button onClick={onClose}>×</button>
         </div>
       </div>
-      <ChatMessages messages={messages} /> {/* Используем новый компонент */}
+      <ChatMessages messages={[]} /> {/* Используем компонент ChatMessages */}
       <div className="chat-widget__footer">
-        <input
-          type="text"
-          className="chat-widget__input"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder="Введите сообщение..."
-        />
-        <button
-          className="chat-widget__send-button"
-          onClick={handleSendMessage}
-        >
-          Отпр
-        </button>
+        <textarea placeholder="Введите сообщение..." />
+        <button>Отправить</button>
       </div>
+
+      {/* Ресайзеры для изменения размера */}
       <div
-        className="chat-widget__resizer"
-        onMouseDown={handleResizeMouseDown}
+        className="chat-widget__resizer chat-widget__resizer--bottom-right"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'bottom-right')}
+      />
+      <div
+        className="chat-widget__resizer chat-widget__resizer--bottom-left"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'bottom-left')}
+      />
+      <div
+        className="chat-widget__resizer chat-widget__resizer--top-right"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'top-right')}
+      />
+      <div
+        className="chat-widget__resizer chat-widget__resizer--top-left"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'top-left')}
+      />
+      <div
+        className="chat-widget__resize chat-widget__resize--left"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'left')}
+      />
+      <div
+        className="chat-widget__resize chat-widget__resize--right"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'right')}
+      />
+      <div
+        className="chat-widget__resize chat-widget__resize--bottom"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'bottom')}
+      />
+      <div
+        className="chat-widget__resize chat-widget__resize--top"
+        onMouseDown={(e) => handleResizeMouseDown(e, 'top')}
       />
     </div>
   );

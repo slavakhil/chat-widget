@@ -9,99 +9,76 @@
   user-select: none; // Отключаем выделение для всего виджета
   resize: none; // Отключаем стандартный ресайз
   overflow: hidden; // Скрываем содержимое, выходящее за границы
+  min-width: 250px; // Минимальная ширина виджета
+  min-height: 400px; // Минимальная высота виджета
+}
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    font-weight: bold;
-  }
+.chat-widget__resizer {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  cursor: se-resize; // Курсор для изменения размера
 
-  &__header-drag-area {
-    flex: 1;
-    cursor: move; // Курсор "move" для перемещения
-    user-select: none; // Отключаем выделение
-  }
-
-  &__header-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  &__header-button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 16px;
-    cursor: pointer; // Курсор "pointer" для кнопок
-    padding: 5px;
-    border-radius: 4px;
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-  }
-
-  &__body {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    user-select: text; // Разрешаем выделение текста в теле чата
-  }
-
-  &__footer {
-    display: flex;
-    padding: 10px;
-    border-top: 1px solid #ccc;
-    background-color: #f9f9f9;
-    gap: 10px; // Расстояние между полем ввода и кнопкой
-  }
-
-  &__input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-    outline: none; // Убираем стандартный outline
-    transition: border-color 0.3s ease;
-
-    &:focus {
-      border-color: #007bff; // Подсветка при фокусе
-    }
-  }
-
-  &__send-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-
-    &:hover {
-      background-color: #0056b3; // Эффект при наведении
-    }
-
-    &:active {
-      background-color: #004080; // Эффект при нажатии
-    }
-  }
-
-  &__resizer {
-    position: absolute;
+  &--bottom-right {
     right: 0;
     bottom: 0;
+    cursor: se-resize; // Курсор для изменения размера (правый нижний угол)
+  }
+
+  &--bottom-left {
+    left: 0;
+    bottom: 0;
+    cursor: sw-resize; // Курсор для изменения размера (левый нижний угол)
+  }
+
+  &--top-right {
+    right: 0;
+    top: 0;
+    cursor: ne-resize; // Курсор для изменения размера (правый верхний угол)
+  }
+
+  &--top-left {
+    left: 0;
+    top: 0;
+    cursor: nw-resize; // Курсор для изменения размера (левый верхний угол)
+  }
+}
+
+.chat-widget__resize {
+  position: absolute;
+  background-color: red;
+  cursor: pointer; // Курсор для изменения размера
+
+  &--right {
+    top: 10px;
+    bottom: 10px;
+    right: 0;
     width: 10px;
+    cursor: pointer; // Курсор для изменения размера (правый нижний угол)
+  }
+
+  &--left {
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    width: 10px;
+    cursor: pointer; // Курсор для изменения размера (левый нижний угол)
+  }
+
+  &--bottom {
+    right: 10px;
+    left: 10px;
+    bottom: 0;
     height: 10px;
-    background-color: #007bff;
-    cursor: se-resize; // Курсор для изменения размера
+    cursor: pointer; // Курсор для изменения размера (правый верхний угол)
+  }
+
+  &--top {
+    right: 10px;
+    left: 10px;
+    height: 10px;
+    top: 0;
+    cursor: pointer; // Курсор для изменения размера (левый верхний угол)
   }
 }
